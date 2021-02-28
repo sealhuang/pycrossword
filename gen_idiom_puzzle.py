@@ -24,14 +24,16 @@ def load_idioms():
     return long_idioms, short_idioms
 
 def select_idioms(long_idioms, short_idioms):
-    """Get random idiom set."""
+    """Get idiom set randomly."""
     MIN_TTL_IDIOMS = 15
     MAX_TTL_IDIOMS = 20
+    MIN_LONG_IDIOMS = 2
     MAX_LONG_IDIOMS = 6
     MAX_TTL_WORDS = 67
 
+    # set the number of selected idioms randomly
     ttl_idioms_num = random.randint(MIN_TTL_IDIOMS, MAX_TTL_IDIOMS)
-    long_idioms_num = random.randint(3, MAX_LONG_IDIOMS)
+    long_idioms_num = random.randint(MIN_LONG_IDIOMS, MAX_LONG_IDIOMS)
     short_idioms_num = ttl_idioms_num - long_idioms_num
 
     long_idioms_idx = []
@@ -39,89 +41,58 @@ def select_idioms(long_idioms, short_idioms):
     sel_idioms = []
     ttl_words = 0
 
-    flag = 0
-    cw_count = {}
+    _flag = -1
+    interset_count = {}
     while ttl_words < MAX_TTL_WORDS and \
-          (len(long_idioms_idx)<long_idioms_num or \
-           len(short_idioms_idx)<(ttl_idioms_num-long_idioms_num)):
-        if (flag%2==0) and (len(long_idioms_idx)<long_idioms_num):
-            not_find = True
-            iter_num = 0
-            while not_find and iter_num<1000:
-                sel_long_idx = random.randint(0, len(long_idioms)-1)
-                if sel_long_idx not in long_idioms_idx:
-                    iter_num += 1
-                    if len(sel_idioms):
-                        ref_idx = random.randint(0, len(sel_idioms)-1)
-                        _cw_num = int(sqrt(len(sel_idioms[ref_idx][0]))+0.5)
-                        if cw_count[ref_idx] <= (_cw_num-1):
-                            _cw = [
-                                w for w in long_idioms[sel_long_idx][0]
+          (len(long_idioms_idx) < long_idioms_num or \
+           len(short_idioms_idx) < short_idioms_num):
+        # select idiom from long- or short-idiom set
+        _flag += 1
+        if (_flag%2 == 0) and (len(long_idioms_idx) < long_idioms_num):
+            # select idiom from long-set
+            _idiom_set = long_idioms
+            _idiom_idx = long_idioms_idx
+        elif (_flag%2 == 1) and (len(short_idioms_idx) < short_idioms_num):
+            # select idiom from short-set
+            _idiom_set = short_idioms
+            _idiom_idx = short_idioms_idx
+        else:
+            continue
+
+        # select idiom from the specified idiom set
+        not_find = True
+        iter_num = 0
+        while not_find and iter_num<1000:
+            sel_idx = random.randint(0, len(_idiom_set)-1)
+            if sel_idx not in _idiom_idx:
+                iter_num += 1
+                if len(sel_idioms):
+                    ref_idx = random.randint(0, len(sel_idioms)-1)
+                    _max_interset = int(sqrt(len(sel_idioms[ref_idx][0]))+0.5)
+                    if interset_count[ref_idx] < _max_interset:
+                        _cw = [
+                            w for w in _idiom_set[sel_idx][0]
                                 if w in sel_idioms[ref_idx][0]
-                            ]
-                            if len(_cw)>1:
-                                long_idioms_idx.append(sel_long_idx)
-                                sel_idioms.append(long_idioms[sel_long_idx])
-                                ttl_words += len(sel_idioms[-1][0])
-                                cw_count[ref_idx] += 1
-                                cw_count[len(sel_idioms)-1] = 1
-                                not_find = False
-                                #print(sel_idioms[-1])
-                                #print(cw_count)
-                    else:
-                        long_idioms_idx.append(sel_long_idx)
-                        sel_idioms.append(long_idioms[sel_long_idx])
-                        ttl_words += len(sel_idioms[-1][0])
-                        not_find = False
-                        cw_count[0] = 0
-                        #print(sel_idioms[-1])
-                        #print(cw_count)
+                        ]
+                        if len(_cw)>1:
+                            _idiom_idx.append(sel_idx)
+                            sel_idioms.append(_idiom_set[sel_idx])
+                            ttl_words += len(sel_idioms[-1][0])
+                            interset_count[ref_idx] += 1
+                            interset_count[len(sel_idioms)-1] = 1
+                            not_find = False
+                            #print(sel_idioms[-1])
+                            #print(interset_count)
+                else:
+                    _idiom_idx.append(sel_idx)
+                    sel_idioms.append(_idiom_set[sel_idx])
+                    ttl_words += len(sel_idioms[-1][0])
+                    interset_count[0] = 0
+                    not_find = False
+                    #print(sel_idioms[-1])
+                    #print(interset_count)
 
-        if (flag%2==1) and (len(short_idioms_idx)<short_idioms_num):
-            not_find = True
-            iter_num = 0
-            while not_find and iter_num<1000:
-                sel_short_idx = random.randint(0, len(short_idioms)-1)
-                if sel_short_idx not in short_idioms_idx:
-                    iter_num += 1
-                    if len(sel_idioms):
-                        ref_idx = random.randint(0, len(sel_idioms)-1)
-                        _cw_num = int(sqrt(len(sel_idioms[ref_idx][0]))+0.5)
-                        if cw_count[ref_idx] <= (_cw_num-1):
-                            _cw = [
-                                w for w in short_idioms[sel_short_idx][0]
-                                if w in sel_idioms[ref_idx][0]
-                            ]
-                            if len(_cw)>1:
-                                short_idioms_idx.append(sel_short_idx)
-                                sel_idioms.append(short_idioms[sel_short_idx])
-                                ttl_words += len(sel_idioms[-1][0])
-                                cw_count[ref_idx] += 1
-                                cw_count[len(sel_idioms)-1] = 1
-                                not_find = False
-                                #print(sel_idioms[-1])
-                                #print(cw_count)
-
-        flag += 1
-
-    print(cw_count)
-
-    #long_idiom_idx = random.sample(range(1, len(long_idioms)), long_idioms_num)
-    #short_idiom_idx = random.sample(
-    #    range(1, len(short_idioms)),
-    #    ttl_idioms_num - long_idioms_num,
-    #)
-
-    #sel_idioms = []
-    #ttl_words = 0
-    #for k in long_idiom_idx:
-    #    sel_idioms.append(long_idioms[k])
-    #    ttl_words += len(long_idioms[k][0])
-    #for k in short_idiom_idx:
-    #    if ttl_words>=MAX_TTL_WORDS:
-    #        break
-    #    sel_idioms.append(short_idioms[k])
-    #    ttl_words += len(short_idioms[k][0])
+    print(interset_count)
 
     return sel_idioms
 
@@ -139,8 +110,8 @@ if __name__ == '__main__':
         print('\n')
 
         # generate puzzle
-        a = Crossword(12, 12, '**', 5000, sel_idioms)
-        a.compute_crossword(20, 5)
+        a = Crossword(11, 11, '**', 5000, sel_idioms)
+        a.compute_crossword(30, 2)
         if len(a.current_word_list)/len(sel_idioms)>0.4:
             print(a.word_bank())
             print(a.solution())

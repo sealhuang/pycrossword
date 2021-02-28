@@ -8,7 +8,8 @@ from copy import copy as duplicate
  
  
 class Crossword(object):
-    def __init__(self, cols, rows, empty='-', maxloops=2000, available_words=[]):
+    def __init__(self, cols, rows, empty='-', maxloops=2000,
+                 available_words=[]):
         self.cols = cols
         self.rows = rows
         self.empty = empty
@@ -43,15 +44,20 @@ class Crossword(object):
         self.available_words = temp_list
  
     def compute_crossword(self, time_permitted=1.00, spins=2):
-        copy = Crossword(self.cols, self.rows, self.empty,
-                         self.maxloops, self.available_words)
+        copy = Crossword(
+            self.cols,
+            self.rows,
+            self.empty,
+            self.maxloops,
+            self.available_words,
+        )
 
         count = 0
         time_permitted = float(time_permitted)
-        start_full = float(time.time())
+        start_full = time.time()
 
         # only run for x seconds
-        while (float(time.time()) - start_full) < time_permitted or count == 0:
+        while (time.time() - start_full) < time_permitted or count == 0:
             self.debug += 1
             copy.randomize_word_list()
             copy.current_word_list = []
@@ -146,20 +152,28 @@ class Crossword(object):
         while not fit and count < self.maxloops:
             # this is the first word: the seed
             if len(self.current_word_list) == 0:
-                # top left seed of longest word yields best results (maybe override)
-                vertical, col, row = random.randrange(0, 2), 1, 1
+                # top left seed of longest word yields best results
+                #vertical, col, row = random.randrange(0, 2), 1, 1
+
+                # place the first word randomly
+                vertical = random.randrange(0, 2)
+                if vertical:
+                    col = random.randrange(1, self.cols+1)
+                    row = random.randrange(1, self.rows-word.length+2)
+                else:
+                    col = random.randrange(1, self.cols-word.length+2)
+                    row = random.randrange(1, self.rows+1)
 
                 """ 
                 # optional center seed method, slower and less keyword placement
                 if vertical:
                     col = int(round((self.cols+1)/2, 0))
-                    row = int(round((self.rows+1)/2, 0)) - int(round((word.length+1)/2, 0))
+                    row = int(round((self.rows+1)/2, 0)) - \
+                          int(round((word.length+1)/2, 0))
                 else:
-                    col = int(round((self.cols+1)/2, 0)) - int(round((word.length+1)/2, 0))
+                    col = int(round((self.cols+1)/2, 0)) - \
+                          int(round((word.length+1)/2, 0))
                     row = int(round((self.rows+1)/2, 0))
-                # completely random seed method
-                col = random.randrange(1, self.cols + 1)
-                row = random.randrange(1, self.rows + 1)
                 """
  
                 if self.check_fit_score(col, row, vertical, word):
