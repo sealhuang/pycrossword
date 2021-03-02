@@ -361,7 +361,7 @@ class Crossword(object):
         self.order_number_words()
         outStr = ''
         for word in self.current_word_list:
-            outStr += '%d. (%d,%d) %s: %s\n' % (word.number, word.col, word.row, word.down_across(), word.clue)
+            outStr += '%d. (c%d,r%d) %s %s: %s\n' % (word.number, word.col, word.row, word.down_across(), word.word, word.clue)
         return outStr
 
 
