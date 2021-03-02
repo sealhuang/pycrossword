@@ -74,7 +74,7 @@ def select_idioms(long_idioms, short_idioms):
                             w for w in _idiom_set[sel_idx][0]
                                 if w in sel_idioms[ref_idx][0]
                         ]
-                        if len(_cw)>1:
+                        if len(_cw)==2:
                             _idiom_idx.append(sel_idx)
                             sel_idioms.append(_idiom_set[sel_idx])
                             ttl_words += len(sel_idioms[-1][0])
@@ -115,5 +115,7 @@ if __name__ == '__main__':
         if len(a.current_word_list)/len(sel_idioms)>0.4:
             print(a.word_bank())
             print(a.solution())
+            #print(a.display())
+            print(a.legend())
 
 
