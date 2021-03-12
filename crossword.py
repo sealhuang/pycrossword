@@ -364,6 +364,27 @@ class Crossword(object):
             outStr += '%d. (c%d,r%d) %s %s: %s\n' % (word.number, word.col, word.row, word.down_across(), word.word, word.clue)
         return outStr
 
+    def solution2json(self):
+        """Output puzzle solution as json format."""
+        solution = {
+            'size': {
+                'cols': self.cols,
+                'rows': self.rows,
+            },
+            'words': [],
+        }
+        for word in self.current_word_list:
+            w = {
+                'word': word.word,
+                'clue': word.clue,
+                'col': word.col,
+                'row': word.row,
+                'direction': word.down_across(),
+            }
+            solution['words'].append(w)
+
+        return solution
+
 
 class Word(object):
     def __init__(self, word=None, clue=None):

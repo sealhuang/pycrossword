@@ -1,5 +1,6 @@
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 
+import os
 import json
 import random
 from math import sqrt
@@ -15,6 +16,7 @@ def load_idioms():
     short_idioms = []
     long_idioms = []
     for item in idiom_set:
+        item['word'] = item['word'].replace('，', '')
         l = len(item['word'])
         if l>4 and l<=10:
             long_idioms.append((item['word'], item['explanation']))
@@ -22,6 +24,19 @@ def load_idioms():
             short_idioms.append((item['word'], item['explanation']))
 
     return long_idioms, short_idioms
+
+def load_thu_idioms():
+    """Load idioms from THUNLP dataset."""
+    raw_info = open('THUOCL_chengyu.txt').readlines()
+    raw_info = [line.strip().split('\t') for line in raw_info]
+    thu_idioms = [item[0].strip() for item in raw_info]
+
+    return thu_idioms
+
+def save_idioms(idiom_list):
+    with open('all_idioms.txt', 'w') as f:
+        for line in idiom_list:
+            f.write(line+'\n')
 
 def select_idioms(long_idioms, short_idioms):
     """Get idiom set randomly."""
@@ -100,6 +115,19 @@ def select_idioms(long_idioms, short_idioms):
 if __name__ == '__main__':
     # load idiom dataset
     long_idioms, short_idioms = load_idioms()
+    print('Load %s long idioms, %s short idioms' % (
+        len(long_idioms), len(short_idioms)))
+
+    thu_idioms = load_thu_idioms()
+    long_idioms = [item for item in long_idioms if item[0] in thu_idioms]
+    short_idioms = [item for item in short_idioms if item[0] in thu_idioms]
+    print('Load %s long idioms, %s short idioms' % (
+        len(long_idioms), len(short_idioms)))
+
+    # save all idioms to file
+    #idiom_list = [item[0] for item in long_idioms] + \
+    #             [item[0] for item in short_idioms]
+    #save_idioms(idiom_list)
 
     for _ in range(10000):
         # select idioms randomly
@@ -109,13 +137,21 @@ if __name__ == '__main__':
             print(item)
         print('\n')
 
+        # save each puzzle as a json file
+        solution_dir = os.path.join(os.path.curdir, 'solutions')
+        if not os.path.exists(solution_dir):
+            os.mkdir(solution_dir, mode=0o755)
+
         # generate puzzle
         a = Crossword(11, 11, '**', 5000, sel_idioms)
         a.compute_crossword(30, 2)
         if len(a.current_word_list)/len(sel_idioms)>0.4:
             print(a.word_bank())
             print(a.solution())
-            #print(a.display())
-            print(a.legend())
+            json_solution = a.solution2json()
+            #print(json_solution)
+            # save solutions to json file
+            with open(os.path.join(solution_dir, '%s.json'%(_+1)), 'w') as jf:
+                jf.write(json.dumps(json_solution)+'\n')
 
 
